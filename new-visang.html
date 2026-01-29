@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>입력 → 7구역 지도 → 새 화면 (뒤로가기 지원)</title>
+  <title>입력 → 7구역 지도 → 캐릭터 클릭 입력 + 나무(전 기기 공용)</title>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin: 60px 0; background:#fff; }
     .screen { display: none; }
@@ -32,6 +32,19 @@
     }
     .hint { font-size: 13px; color: #666; margin-top: 6px; }
 
+    /* ====== Screen2 레이아웃: 지도 + 나무패널(지도를 가리지 않음) ====== */
+    .map-layout{
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 240px;
+      gap: 12px;
+      align-items: start;
+    }
+    @media (max-width: 860px){
+      .map-layout{
+        grid-template-columns: 1fr;
+      }
+    }
+
     .map-stage{
       position: relative;
       width: 100%;
@@ -54,7 +67,7 @@
       height: 100%;
     }
 
-    /* ✅ 클릭 구역 hover 강조(더 잘 보이게) */
+    /* ✅ 클릭 구역 hover 강조 */
     .region{
       fill: rgba(0,0,0,0);
       cursor: pointer;
@@ -72,6 +85,88 @@
       flex-wrap: wrap; margin-top: 12px;
     }
 
+    /* ===== Screen2: 나무 패널 ===== */
+    .treePanel{
+      border: 1px solid #eee;
+      border-radius: 14px;
+      background: #fafafa;
+      padding: 10px;
+      position: sticky;
+      top: 14px;
+    }
+    @media (max-width: 860px){
+      .treePanel{ position: relative; top: auto; }
+    }
+    .treePanelHeader{
+      display:flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .treeCount{
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #ddd;
+      background: #fff;
+      white-space: nowrap;
+      color:#333;
+      font-weight: 700;
+    }
+    .treeStage{
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1.15;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #eee;
+      background: #fff;
+    }
+    .treeStage img.treeImg{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit: contain;
+      user-select:none;
+      -webkit-user-drag:none;
+      pointer-events:none;
+    }
+    .leafImg{
+      position:absolute;
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+      user-select:none;
+      -webkit-user-drag:none;
+      pointer-events:none;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+      transform-origin: center;
+      opacity: 0.98;
+      animation: leafPop .16s ease-out;
+    }
+    @keyframes leafPop{
+      from{ transform: translate(-50%, -50%) rotate(var(--rot,0deg)) scale(0.6); opacity: 0.2; }
+      to{ transform: translate(-50%, -50%) rotate(var(--rot,0deg)) scale(var(--sc,1)); opacity: 0.98; }
+    }
+    .treeActions{
+      display:flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .miniBtn{
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      background: #fff;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .miniBtn:hover{ background:#f6f6f6; }
+
+    /* ===== Screen3: 이미지 프레임 + 캐릭터 오버레이 ===== */
     .viewer {
       display: grid;
       gap: 12px;
@@ -79,8 +174,12 @@
       text-align: center;
       padding-top: 6px;
     }
-
-    .viewer img{
+    .photoFrame{
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+    }
+    .viewer img#regionImage{
       width: 100%;
       max-width: 420px;
       height: 260px;
@@ -90,9 +189,34 @@
       background: #fafafa;
       transform-origin: center center;
       transition: transform 140ms ease;
+      display:block;
     }
 
-    /* ✅ 툴팁(마우스 오버 시 장소명 표시) */
+    /* ✅ 캐릭터: 살짝 확대(호버), 뿌연 배경/동그라미 효과 없음 */
+    .characterHotspot{
+      position:absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-drag: none;
+
+      background: none;
+      backdrop-filter: none;
+      border-radius: 0;
+      box-shadow: none;
+
+      transition: transform 120ms ease;
+    }
+    .characterHotspot:hover{
+      transform: translate(-50%, -50%) scale(1.03);
+    }
+
+    /* ✅ 툴팁 */
     .tooltip {
       position: fixed;
       z-index: 9999;
@@ -139,9 +263,7 @@
       justify-content: center;
       z-index: 9999;
     }
-    .modal.show{
-      display: flex;
-    }
+    .modal.show{ display: flex; }
     .modal-card{
       background: #fff;
       border-radius: 16px;
@@ -197,18 +319,43 @@
          </div>
      </div>
 
-      <div class="map-stage">
-        <img src="floor.png" alt="지도">
+      <!-- ✅ 지도 + 나무(지도를 안 가림) -->
+      <div class="map-layout">
+        <div class="map-stage">
+          <img src="floor.png" alt="지도">
 
-        <svg viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid meet" aria-label="클릭 가능한 7구역">
-          <rect class="region" data-region="휴담" x="205" y="115" width="466" height="110" rx="28" ry="28"></rect>
-          <rect class="region" data-region="통실" x="671" y="115" width="765" height="287" rx="28" ry="28"></rect>
-          <rect class="region" data-region="스마트 클래스" x="1365" y="402" width="70" height="253" rx="28" ry="28"></rect>
-          <rect class="region" data-region="도서관" x="97" y="225" width="203" height="447" rx="28" ry="28"></rect>
-          <rect class="region" data-region="스마트아카이브" x="97" y="780" width="248" height="88" rx="28" ry="28"></rect>
-          <rect class="region" data-region="교과서의 역사" x="345" y="780" width="841" height="88" rx="28" ry="28"></rect>
-          <rect class="region" data-region="에듀테크존" x="315" y="225" width="248" height="70" rx="28" ry="28"></rect>
-        </svg>
+          <svg viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid meet" aria-label="클릭 가능한 7구역">
+            <rect class="region" data-region="휴담" x="205" y="115" width="466" height="110" rx="28" ry="28"></rect>
+            <rect class="region" data-region="통실" x="671" y="115" width="765" height="287" rx="28" ry="28"></rect>
+            <rect class="region" data-region="스마트 클래스" x="1365" y="402" width="70" height="253" rx="28" ry="28"></rect>
+            <rect class="region" data-region="도서관" x="97" y="225" width="203" height="447" rx="28" ry="28"></rect>
+            <rect class="region" data-region="스마트아카이브" x="97" y="780" width="248" height="88" rx="28" ry="28"></rect>
+            <rect class="region" data-region="교과서의 역사" x="345" y="780" width="841" height="88" rx="28" ry="28"></rect>
+            <rect class="region" data-region="에듀테크존" x="315" y="225" width="248" height="70" rx="28" ry="28"></rect>
+          </svg>
+        </div>
+
+        <!-- ✅ 나무 패널 (이미지로 넣기) -->
+        <aside class="treePanel" aria-label="나무 패널">
+          <div class="treePanelHeader">
+            <div style="font-weight:700;color:#333;">나무</div>
+            <div class="treeCount" id="leafCountBadge">0개</div>
+          </div>
+
+          <div class="treeStage" id="treeStage">
+            <!-- 네가 넣을 나무 이미지 -->
+            <img class="treeImg" src="tree.png" alt="나무">
+            <!-- 잎은 JS로 렌더 -->
+          </div>
+
+          <div class="treeActions">
+            <button class="miniBtn" id="clearTreeBtn" type="button">나무 0개로 초기화</button>
+          </div>
+
+          <div class="hint" style="margin-top:8px;">
+            ※ 누가 어디서든 한 줄 저장하면 잎 개수가 올라가요(전 기기 공용).
+          </div>
+        </aside>
       </div>
 
       <div class="btn-row">
@@ -224,19 +371,24 @@
         <div>
           <h2 style="margin:0" id="regionTitle">구역</h2>
           <div class="hint" id="regionSub">공간을 소개합니다.</div>
-          <!-- ✅ 구역별 질문 표시 -->
           <div class="hint" id="regionQuestion" style="margin-top:8px; font-weight:600; color:#333;"></div>
         </div>
         <div class="badge" id="userBadge3"></div>
       </div>
 
       <div class="viewer">
-        <img id="regionImage" alt="선택된 구역 이미지">
+        <div class="photoFrame">
+          <img id="regionImage" alt="선택된 구역 이미지">
 
-        <!-- ✅ 한 줄 남기기 -->
-        <button id="openCommentBtn" style="margin-top:12px;">
-          답변 남기기
-        </button>
+          <!-- 네가 넣을 캐릭터 이미지(투명 PNG 권장) -->
+          <img
+            id="characterHotspot"
+            class="characterHotspot"
+            src="character.png"
+            alt="한 줄 입력하기"
+            title="클릭해서 한 줄 입력"
+          />
+        </div>
       </div>
 
       <div class="btn-row">
@@ -267,20 +419,23 @@
     </div>
   </div>
 
-  <!-- ✅ Firebase + 기존 로직 합본 -->
   <script type="module">
     /* =========================
-       1) Firebase 설정 (여기만 교체!)
+       1) Firebase 설정
        ========================= */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import {
       getFirestore,
       collection,
       addDoc,
-      serverTimestamp
+      serverTimestamp,
+      doc,
+      setDoc,
+      onSnapshot,
+      updateDoc,
+      increment
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // 🔥 TODO: Firebase 콘솔의 웹 앱 설정에서 복사한 값으로 교체
     const firebaseConfig = {
       apiKey: "AIzaSyA8n3EetbrAOmJ9BFy7tdSxKjwbobqOcP8",
       authDomain: "visang-find.firebaseapp.com",
@@ -293,7 +448,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ✅ Firestore 저장 함수 (구역별 질문도 같이 저장)
     async function saveCommentToFirestore(region, question, text, name, department) {
       await addDoc(collection(db, "comments"), {
         region,
@@ -305,48 +459,73 @@
       });
     }
 
-    // ===== 저장 키 =====
+    /* =========================
+       2) 나무(전 기기 공용) 설정
+       - 나무 이미지: tree.png
+       - 잎 이미지 5개: leaf1.png ~ leaf5.png
+       ========================= */
+    const LEAF_IMAGES = ["leaf1.png","leaf2.png","leaf3.png","leaf4.png","leaf5.png"];
+
+    // 잎이 들어갈 “지정 위치들”(treeStage 기준 퍼센트)
+    const LEAF_POSITIONS = [
+      { x: 22, y: 22 }, { x: 35, y: 18 }, { x: 50, y: 20 }, { x: 65, y: 18 }, { x: 78, y: 22 },
+      { x: 18, y: 35 }, { x: 32, y: 33 }, { x: 48, y: 34 }, { x: 62, y: 33 }, { x: 82, y: 36 },
+      { x: 22, y: 50 }, { x: 38, y: 48 }, { x: 52, y: 50 }, { x: 68, y: 48 }, { x: 80, y: 52 },
+      { x: 28, y: 64 }, { x: 44, y: 64 }, { x: 58, y: 66 }, { x: 72, y: 64 }, { x: 36, y: 74 },
+    ];
+
+    // Firestore의 중앙 나무 상태 문서
+    const treeDocRef = doc(db, "tree", "state");
+
+    async function ensureTreeDoc() {
+      // 없으면 생성(merge라 기존 값 유지)
+      await setDoc(treeDocRef, { leafCount: 0 }, { merge: true });
+    }
+
+    /* =========================
+       3) 저장 키 & DOM
+       ========================= */
     const KEY_NAME = "saved_name";
     const KEY_DEPT = "saved_department";
     const KEY_REGION = "saved_region";
 
-    // ===== 화면 =====
     const screen1 = document.getElementById("screen1");
     const screen2 = document.getElementById("screen2");
     const screen3 = document.getElementById("screen3");
 
-    // ===== 입력 =====
     const nameInput = document.getElementById("name");
     const deptSelect = document.getElementById("department");
 
-    // ===== 버튼 =====
     const nextBtn = document.getElementById("nextBtn");
     const backBtn = document.getElementById("backBtn");
     const resetBtn = document.getElementById("resetBtn");
     const toMapBtn = document.getElementById("toMapBtn");
 
-    // ===== 뱃지 =====
     const userBadge = document.getElementById("userBadge");
     const userBadge3 = document.getElementById("userBadge3");
 
-    // ===== 상세 화면 =====
     const regionTitle = document.getElementById("regionTitle");
     const regionSub = document.getElementById("regionSub");
     const regionImage = document.getElementById("regionImage");
     const regionQuestionEl = document.getElementById("regionQuestion");
 
-    // ===== 모달 =====
-    const openCommentBtn = document.getElementById("openCommentBtn");
+    const characterHotspot = document.getElementById("characterHotspot");
+
     const commentModal = document.getElementById("commentModal");
     const commentInput = document.getElementById("commentInput");
     const saveCommentBtn = document.getElementById("saveCommentBtn");
     const closeCommentBtn = document.getElementById("closeCommentBtn");
     const questionText = document.getElementById("questionText");
 
-    // ===== 구역 요소 =====
     const regionEls = document.querySelectorAll(".region");
 
-    // ✅ 구역별로 보여줄 이미지 파일 매핑
+    const treeStage = document.getElementById("treeStage");
+    const leafCountBadge = document.getElementById("leafCountBadge");
+    const clearTreeBtn = document.getElementById("clearTreeBtn");
+
+    /* =========================
+       4) 구역 매핑
+       ========================= */
     const regionToImage = {
       "휴담": "hudam.png",
       "통실": "tongsil.png",
@@ -357,7 +536,6 @@
       "에듀테크존": "edutech.png",
     };
 
-    // ✅ 구역별로 표시할 문구
     const regionToText = {
       "휴담": "문구를 입력하세요",
       "통실": "문구를 입력하세요",
@@ -368,7 +546,6 @@
       "에듀테크존": "문구를 입력하세요",
     };
 
-    // ✅ 구역별 질문(각 구역마다 다른 질문)
     const regionToQuestion = {
       "휴담": "문구를 입력하세요",
       "통실": "문구를 입력하세요",
@@ -379,18 +556,25 @@
       "에듀테크존": "문구를 입력하세요",
     };
 
-    // (선택) 구역별 이미지 회전값
     const regionRotation = {
-      "휴담": 0,
-      "통실": 0,
-      "스마트 클래스": 0,
-      "도서관": 0,
-      "스마트아카이브": 0,
-      "교과서의 역사": 0,
-      "에듀테크존": 0,
+      "휴담": 0, "통실": 0, "스마트 클래스": 0, "도서관": 0,
+      "스마트아카이브": 0, "교과서의 역사": 0, "에듀테크존": 0,
     };
 
-    // ====== 라우팅(뒤로가기 지원) ======
+    // 캐릭터 위치(현재 전부 중앙)
+    const regionToCharacterPos = {
+      "휴담": { x: 50, y: 50 },
+      "통실": { x: 50, y: 50 },
+      "스마트 클래스": { x: 50, y: 50 },
+      "도서관": { x: 50, y: 50 },
+      "스마트아카이브": { x: 50, y: 50 },
+      "교과서의 역사": { x: 50, y: 50 },
+      "에듀테크존": { x: 50, y: 50 },
+    };
+
+    /* =========================
+       5) 라우팅(뒤로가기)
+       ========================= */
     function renderScreen(n) {
       screen1.classList.toggle("active", n === 1);
       screen2.classList.toggle("active", n === 2);
@@ -400,10 +584,8 @@
     function go(screenNum, replace = false) {
       const state = { screen: screenNum };
       const url = `#s${screenNum}`;
-
       if (replace) history.replaceState(state, "", url);
       else history.pushState(state, "", url);
-
       renderScreen(screenNum);
     }
 
@@ -418,7 +600,9 @@
       renderScreen(screenFromHash());
     });
 
-    // ====== 기본 기능 ======
+    /* =========================
+       6) 기본 저장/로딩
+       ========================= */
     function saveInputs(name, dept) {
       localStorage.setItem(KEY_NAME, name);
       localStorage.setItem(KEY_DEPT, dept);
@@ -467,7 +651,6 @@
       regionTitle.textContent = regionName;
       regionSub.textContent = regionToText[regionName] || `${regionName} 공간을 소개합니다.`;
 
-      // ✅ 구역별 질문 표시(3번째 화면)
       const q = regionToQuestion[regionName] || "이 공간에 대한 한 줄을 남겨주세요.";
       regionQuestionEl.textContent = `질문: ${q}`;
 
@@ -482,11 +665,17 @@
         regionImage.style.transform = "rotate(0deg)";
       }
 
+      // 캐릭터 위치 적용(현재 중앙)
+      const pos = regionToCharacterPos[regionName] || { x: 50, y: 50 };
+      characterHotspot.style.left = `${pos.x}%`;
+      characterHotspot.style.top = `${pos.y}%`;
+
       updateBadges();
       go(3);
     }
 
     function resetAll() {
+      // 사용자/선택 구역만 초기화 (나무는 중앙 공용이므로 건드리지 않음)
       localStorage.removeItem(KEY_NAME);
       localStorage.removeItem(KEY_DEPT);
       localStorage.removeItem(KEY_REGION);
@@ -505,7 +694,9 @@
       el.addEventListener("click", () => openRegion(el.dataset.region));
     });
 
-    // ====== 툴팁(장소명) ======
+    /* =========================
+       7) 툴팁(장소명)
+       ========================= */
     const tooltip = document.getElementById("tooltip");
     function showTooltip(text, clientX, clientY) {
       tooltip.textContent = text;
@@ -538,8 +729,113 @@
     window.addEventListener("scroll", hideTooltip, { passive: true });
     window.addEventListener("resize", hideTooltip);
 
-    // ====== 모달(답변 남기기) ======
-    openCommentBtn.addEventListener("click", () => {
+    /* =========================
+       8) 픽셀 퍼펙트 클릭(투명 영역 무시)
+       - 캐릭터 PNG가 투명 배경이면 “테두리 클릭” 느낌으로 동작
+       ========================= */
+    function makePixelPerfectClickable(imgEl, onHit) {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+      function drawToCanvas() {
+        const w = imgEl.naturalWidth;
+        const h = imgEl.naturalHeight;
+        if (!w || !h) return false;
+        canvas.width = w;
+        canvas.height = h;
+        ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(imgEl, 0, 0);
+        return true;
+      }
+
+      if (imgEl.complete) drawToCanvas();
+      imgEl.addEventListener("load", drawToCanvas);
+
+      imgEl.addEventListener("pointerdown", (e) => {
+        const rect = imgEl.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) * (imgEl.naturalWidth / rect.width));
+        const y = Math.floor((e.clientY - rect.top) * (imgEl.naturalHeight / rect.height));
+
+        if (x < 0 || y < 0 || x >= imgEl.naturalWidth || y >= imgEl.naturalHeight) return;
+        if (!imgEl.naturalWidth || !imgEl.naturalHeight) return;
+
+        const pixel = ctx.getImageData(x, y, 1, 1).data;
+        const alpha = pixel[3];
+
+        // 투명 클릭 무시(임계값)
+        if (alpha > 20) onHit(e);
+      });
+    }
+
+    /* =========================
+       9) 나무: 실시간 구독 + 렌더
+       - 중앙 상태: tree/state.leafCount
+       - 화면 표현: count만큼 잎을 “지정 위치 중 랜덤”으로 뿌림
+       ========================= */
+    let unsubscribeTree = null;
+
+    function clearRenderedLeaves(){
+      treeStage.querySelectorAll(".leafImg").forEach(el => el.remove());
+    }
+
+    function renderLeavesByCount(count) {
+      clearRenderedLeaves();
+
+      // 표시 제한(너무 많아지면 보기 부담)
+      const maxShow = 45;
+      const showCount = Math.min(count, maxShow);
+
+      // 위치 셔플해서 겹침 최소화
+      const positions = [...LEAF_POSITIONS];
+      for (let i = positions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [positions[i], positions[j]] = [positions[j], positions[i]];
+      }
+
+      for (let i = 0; i < showCount; i++) {
+        const pos = positions[i % positions.length];
+        const leafIdx = Math.floor(Math.random() * LEAF_IMAGES.length);
+
+        const rot = Math.round(-30 + Math.random() * 60);
+        const sc = Math.round((0.9 + Math.random() * 0.25) * 100) / 100;
+
+        const img = document.createElement("img");
+        img.className = "leafImg";
+        img.src = LEAF_IMAGES[leafIdx];
+        img.alt = "잎";
+        img.style.left = `${pos.x}%`;
+        img.style.top = `${pos.y}%`;
+        img.style.setProperty("--rot", rot + "deg");
+        img.style.setProperty("--sc", String(sc));
+        img.style.transform = `translate(-50%, -50%) rotate(${rot}deg) scale(${sc})`;
+
+        treeStage.appendChild(img);
+      }
+    }
+
+    function startTreeListener() {
+      if (unsubscribeTree) unsubscribeTree();
+
+      unsubscribeTree = onSnapshot(treeDocRef, (snap) => {
+        const data = snap.data() || {};
+        const count = Number(data.leafCount || 0);
+
+        leafCountBadge.textContent = `${count}개`;
+        renderLeavesByCount(count);
+      });
+    }
+
+    // 나무 0개로 초기화(관리용 버튼)
+    clearTreeBtn.addEventListener("click", async () => {
+      const ok = confirm("나뭇잎(공용)을 0개로 초기화할까요?");
+      if (!ok) return;
+      await setDoc(treeDocRef, { leafCount: 0 }, { merge: true });
+    });
+
+    /* =========================
+       10) 모달(캐릭터 클릭 → 입력)
+       ========================= */
+    function openCommentModal(){
       const region = localStorage.getItem(KEY_REGION);
       if (!region) return;
 
@@ -549,6 +845,11 @@
       commentInput.value = "";
       commentModal.classList.add("show");
       commentInput.focus();
+    }
+
+    // ✅ 캐릭터는 “테두리 클릭”만 반응
+    makePixelPerfectClickable(characterHotspot, () => {
+      openCommentModal();
     });
 
     closeCommentBtn.addEventListener("click", () => {
@@ -573,7 +874,12 @@
       const question = regionToQuestion[region] || "이 공간에 대한 한 줄을 남겨주세요.";
 
       try {
+        // 1) 댓글 저장
         await saveCommentToFirestore(region, question, text, name, department);
+
+        // 2) ✅ 공용 나무 잎 개수 +1
+        await updateDoc(treeDocRef, { leafCount: increment(1) });
+
         commentModal.classList.remove("show");
         commentInput.value = "";
         alert("저장됐어요!");
@@ -583,9 +889,25 @@
       }
     });
 
-    // ====== 초기 로딩 ======
+    // 엔터로 저장
+    commentInput.addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        saveCommentBtn.click();
+      }
+    });
+
+    /* =========================
+       11) 초기 로딩
+       ========================= */
     loadInputs();
     updateBadges();
+
+    // 나무 문서 보장 + 실시간 구독 시작
+    (async function initTree() {
+      await ensureTreeDoc();
+      startTreeListener();
+    })();
 
     (function initRoute() {
       const hasUser = (localStorage.getItem(KEY_NAME) || "").trim() && (localStorage.getItem(KEY_DEPT) || "");
