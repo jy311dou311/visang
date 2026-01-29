@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>입력 → 7구역 지도 → 새 화면 (뒤로가기 지원)</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin: 60px 0; background:#fff; }
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    input, select { padding: 10px; margin: 6px; width: 260px; max-width: 90vw; }
+    button { padding: 10px 18px; margin-top: 12px; cursor: pointer; }
+
+    .card{
+      width: min(980px, 95vw);
+      margin: 0 auto;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      background: #fff;
+      text-align: left;
+    }
+    .title{
+      display:flex; justify-content: space-between; align-items: baseline;
+      gap: 10px; margin-bottom: 10px;
+    }
+    .badge{
+      font-size: 12px; padding: 4px 10px; border-radius: 999px;
+      border: 1px solid #ddd; background: #f7f7f7; white-space: nowrap;
+    }
+    .hint { font-size: 13px; color: #666; margin-top: 6px; }
+
+    .map-stage{
+      position: relative;
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #eee;
+      background: #fafafa;
+    }
+    .map-stage img{
+      display: block;
+      width: 100%;
+      height: auto;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .map-stage svg{
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ✅ 클릭 구역 hover 강조(더 잘 보이게) */
+    .region{
+      fill: rgba(0,0,0,0);
+      cursor: pointer;
+      transition: fill 160ms ease, stroke 160ms ease, filter 160ms ease;
+    }
+    .region:hover{
+      fill: rgba(0, 123, 255, 0.25);
+      stroke: rgba(0, 123, 255, 0.9);
+      stroke-width: 3;
+      filter: drop-shadow(0 0 6px rgba(0,123,255,0.45));
+    }
+
+    .btn-row{
+      display:flex; justify-content:center; gap: 10px;
+      flex-wrap: wrap; margin-top: 12px;
+    }
+
+    .viewer {
+      display: grid;
+      gap: 12px;
+      place-items: center;
+      text-align: center;
+      padding-top: 6px;
+    }
+
+    .viewer img{
+      width: 100%;
+      max-width: 420px;
+      height: 260px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid #eee;
+      background: #fafafa;
+      transform-origin: center center;
+      transition: transform 140ms ease;
+    }
+
+    /* ✅ 툴팁(마우스 오버 시 장소명 표시) */
+    .tooltip {
+      position: fixed;
+      z-index: 9999;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.78);
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.2;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, -120%);
+      transition: opacity 80ms ease;
+      white-space: nowrap;
+    }
+    .tooltip.show { opacity: 1; }
+
+    .title-right{
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .reset-mini{
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      background: #fff;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .reset-mini:hover{
+      background: #f6f6f6;
+    }
+
+    /* ===== 모달 ===== */
+    .modal{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .modal.show{
+      display: flex;
+    }
+    .modal-card{
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      width: min(360px, 90vw);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    .modal-card input{
+      width: 100%;
+      padding: 10px;
+      margin: 12px 0;
+    }
+    .modal-actions{
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1) 입력 화면 -->
+  <div id="screen1" class="screen active">
+    <h1>정보 입력</h1>
+
+    <input type="text" id="name" placeholder="이름" autocomplete="name" /><br>
+
+    <select id="department">
+      <option value="">부서 선택</option>
+      <option value="에듀테크콘텐츠1">에듀테크콘텐츠1</option>
+      <option value="라키비움">라키비움</option>
+      <option value="기출탭탭">기출탭탭</option>
+      <option value="국어2">국어2</option>
+      <option value="티칭콘텐츠개발3">티칭콘텐츠개발3</option>
+    </select><br>
+
+    <button id="nextBtn">다음</button>
+  </div>
+
+  <!-- 2) 지도 화면 (7구역) -->
+  <div id="screen2" class="screen">
+    <div class="card">
+      <div class="title">
+         <div>
+             <h2 style="margin:0">7구역 선택</h2>
+             <div class="hint">지도에서 구역을 클릭하면 상세 화면으로 이동해요.</div>
+         </div>
+
+         <div class="title-right">
+             <div class="badge" id="userBadge"></div>
+             <button id="resetBtn" class="reset-mini">저장값 초기화</button>
+         </div>
+     </div>
+
+      <div class="map-stage">
+        <img src="floor.png" alt="지도">
+
+        <svg viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid meet" aria-label="클릭 가능한 7구역">
+          <rect class="region" data-region="휴담" x="205" y="115" width="466" height="110" rx="28" ry="28"></rect>
+          <rect class="region" data-region="통실" x="671" y="115" width="765" height="287" rx="28" ry="28"></rect>
+          <rect class="region" data-region="스마트 클래스" x="1365" y="402" width="70" height="253" rx="28" ry="28"></rect>
+          <rect class="region" data-region="도서관" x="97" y="225" width="203" height="447" rx="28" ry="28"></rect>
+          <rect class="region" data-region="스마트아카이브" x="97" y="780" width="248" height="88" rx="28" ry="28"></rect>
+          <rect class="region" data-region="교과서의 역사" x="345" y="780" width="841" height="88" rx="28" ry="28"></rect>
+          <rect class="region" data-region="에듀테크존" x="315" y="225" width="248" height="70" rx="28" ry="28"></rect>
+        </svg>
+      </div>
+
+      <div class="btn-row">
+        <button id="backBtn">뒤로</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3) 구역 상세 화면 -->
+  <div id="screen3" class="screen">
+    <div class="card">
+      <div class="title">
+        <div>
+          <h2 style="margin:0" id="regionTitle">구역</h2>
+          <div class="hint" id="regionSub">공간을 소개합니다.</div>
+          <!-- ✅ 구역별 질문 표시 -->
+          <div class="hint" id="regionQuestion" style="margin-top:8px; font-weight:600; color:#333;"></div>
+        </div>
+        <div class="badge" id="userBadge3"></div>
+      </div>
+
+      <div class="viewer">
+        <img id="regionImage" alt="선택된 구역 이미지">
+
+        <!-- ✅ 한 줄 남기기 -->
+        <button id="openCommentBtn" style="margin-top:12px;">
+          답변 남기기
+        </button>
+      </div>
+
+      <div class="btn-row">
+        <button id="toMapBtn">지도 돌아가기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 툴팁 -->
+  <div id="tooltip" class="tooltip"></div>
+
+  <!-- ✅ 답변 입력 모달 -->
+  <div id="commentModal" class="modal">
+    <div class="modal-card">
+      <h3 style="margin-top:0">답변 입력</h3>
+      <div id="questionText" class="hint" style="margin-top:-6px;"></div>
+      <input
+        type="text"
+        id="commentInput"
+        placeholder="여기에 한 줄로 입력"
+        maxlength="80"
+      >
+      <div class="modal-actions">
+        <button id="saveCommentBtn">저장</button>
+        <button id="closeCommentBtn">취소</button>
+      </div>
+      <div class="hint" style="margin-top:10px;">※ 중앙수집.</div>
+    </div>
+  </div>
+
+  <!-- ✅ Firebase + 기존 로직 합본 -->
+  <script type="module">
+    /* =========================
+       1) Firebase 설정 (여기만 교체!)
+       ========================= */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // 🔥 TODO: Firebase 콘솔의 웹 앱 설정에서 복사한 값으로 교체
+    const firebaseConfig = {
+      apiKey: "AIzaSyA8n3EetbrAOmJ9BFy7tdSxKjwbobqOcP8",
+      authDomain: "visang-find.firebaseapp.com",
+      projectId: "visang-find",
+      storageBucket: "visang-find.firebasestorage.app",
+      messagingSenderId: "543146477593",
+      appId: "1:543146477593:web:cf26b2d26ab15893d50288"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ✅ Firestore 저장 함수 (구역별 질문도 같이 저장)
+    async function saveCommentToFirestore(region, question, text, name, department) {
+      await addDoc(collection(db, "comments"), {
+        region,
+        question,
+        text,
+        name,
+        department,
+        createdAt: serverTimestamp()
+      });
+    }
+
+    // ===== 저장 키 =====
+    const KEY_NAME = "saved_name";
+    const KEY_DEPT = "saved_department";
+    const KEY_REGION = "saved_region";
+
+    // ===== 화면 =====
+    const screen1 = document.getElementById("screen1");
+    const screen2 = document.getElementById("screen2");
+    const screen3 = document.getElementById("screen3");
+
+    // ===== 입력 =====
+    const nameInput = document.getElementById("name");
+    const deptSelect = document.getElementById("department");
+
+    // ===== 버튼 =====
+    const nextBtn = document.getElementById("nextBtn");
+    const backBtn = document.getElementById("backBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const toMapBtn = document.getElementById("toMapBtn");
+
+    // ===== 뱃지 =====
+    const userBadge = document.getElementById("userBadge");
+    const userBadge3 = document.getElementById("userBadge3");
+
+    // ===== 상세 화면 =====
+    const regionTitle = document.getElementById("regionTitle");
+    const regionSub = document.getElementById("regionSub");
+    const regionImage = document.getElementById("regionImage");
+    const regionQuestionEl = document.getElementById("regionQuestion");
+
+    // ===== 모달 =====
+    const openCommentBtn = document.getElementById("openCommentBtn");
+    const commentModal = document.getElementById("commentModal");
+    const commentInput = document.getElementById("commentInput");
+    const saveCommentBtn = document.getElementById("saveCommentBtn");
+    const closeCommentBtn = document.getElementById("closeCommentBtn");
+    const questionText = document.getElementById("questionText");
+
+    // ===== 구역 요소 =====
+    const regionEls = document.querySelectorAll(".region");
+
+    // ✅ 구역별로 보여줄 이미지 파일 매핑
+    const regionToImage = {
+      "휴담": "hudam.png",
+      "통실": "tongsil.png",
+      "스마트 클래스": "smart-class.png",
+      "도서관": "library.png",
+      "스마트아카이브": "archive.png",
+      "교과서의 역사": "history.png",
+      "에듀테크존": "edutech.png",
+    };
+
+    // ✅ 구역별로 표시할 문구
+    const regionToText = {
+      "휴담": "문구를 입력하세요",
+      "통실": "문구를 입력하세요",
+      "스마트 클래스": "문구를 입력하세요",
+      "도서관": "문구를 입력하세요",
+      "스마트아카이브": "문구를 입력하세요",
+      "교과서의 역사": "문구를 입력하세요",
+      "에듀테크존": "문구를 입력하세요",
+    };
+
+    // ✅ 구역별 질문(각 구역마다 다른 질문)
+    const regionToQuestion = {
+      "휴담": "문구를 입력하세요",
+      "통실": "문구를 입력하세요",
+      "스마트 클래스": "문구를 입력하세요",
+      "도서관": "문구를 입력하세요",
+      "스마트아카이브": "문구를 입력하세요",
+      "교과서의 역사": "문구를 입력하세요",
+      "에듀테크존": "문구를 입력하세요",
+    };
+
+    // (선택) 구역별 이미지 회전값
+    const regionRotation = {
+      "휴담": 0,
+      "통실": 0,
+      "스마트 클래스": 0,
+      "도서관": 0,
+      "스마트아카이브": 0,
+      "교과서의 역사": 0,
+      "에듀테크존": 0,
+    };
+
+    // ====== 라우팅(뒤로가기 지원) ======
+    function renderScreen(n) {
+      screen1.classList.toggle("active", n === 1);
+      screen2.classList.toggle("active", n === 2);
+      screen3.classList.toggle("active", n === 3);
+    }
+
+    function go(screenNum, replace = false) {
+      const state = { screen: screenNum };
+      const url = `#s${screenNum}`;
+
+      if (replace) history.replaceState(state, "", url);
+      else history.pushState(state, "", url);
+
+      renderScreen(screenNum);
+    }
+
+    function screenFromHash() {
+      const h = (location.hash || "").toLowerCase();
+      if (h === "#s2") return 2;
+      if (h === "#s3") return 3;
+      return 1;
+    }
+
+    window.addEventListener("popstate", () => {
+      renderScreen(screenFromHash());
+    });
+
+    // ====== 기본 기능 ======
+    function saveInputs(name, dept) {
+      localStorage.setItem(KEY_NAME, name);
+      localStorage.setItem(KEY_DEPT, dept);
+    }
+
+    function loadInputs() {
+      const savedName = localStorage.getItem(KEY_NAME) || "";
+      const savedDept = localStorage.getItem(KEY_DEPT) || "";
+      if (savedName) nameInput.value = savedName;
+      if (savedDept) deptSelect.value = savedDept;
+    }
+
+    function updateBadges() {
+      const n = (localStorage.getItem(KEY_NAME) || "").trim();
+      const d = localStorage.getItem(KEY_DEPT) || "";
+      const text = (n && d) ? `${n} · ${d}` : "";
+      userBadge.textContent = text;
+      userBadge3.textContent = text;
+    }
+
+    function nextScreen() {
+      const name = nameInput.value.trim();
+      const dept = deptSelect.value;
+
+      if (!name || !dept) {
+        alert("이름과 부서를 모두 입력/선택해주세요!");
+        return;
+      }
+
+      saveInputs(name, dept);
+      updateBadges();
+      go(2);
+    }
+
+    nameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") nextScreen();
+    });
+    deptSelect.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") nextScreen();
+    });
+
+    function openRegion(regionName) {
+      localStorage.setItem(KEY_REGION, regionName);
+
+      const imgSrc = regionToImage[regionName];
+      regionTitle.textContent = regionName;
+      regionSub.textContent = regionToText[regionName] || `${regionName} 공간을 소개합니다.`;
+
+      // ✅ 구역별 질문 표시(3번째 화면)
+      const q = regionToQuestion[regionName] || "이 공간에 대한 한 줄을 남겨주세요.";
+      regionQuestionEl.textContent = `질문: ${q}`;
+
+      if (imgSrc) {
+        regionImage.src = imgSrc;
+        regionImage.alt = `${regionName} 이미지`;
+        const deg = regionRotation[regionName] ?? 0;
+        regionImage.style.transform = `rotate(${deg}deg)`;
+      } else {
+        regionImage.removeAttribute("src");
+        regionImage.alt = "이미지가 없습니다.";
+        regionImage.style.transform = "rotate(0deg)";
+      }
+
+      updateBadges();
+      go(3);
+    }
+
+    function resetAll() {
+      localStorage.removeItem(KEY_NAME);
+      localStorage.removeItem(KEY_DEPT);
+      localStorage.removeItem(KEY_REGION);
+      nameInput.value = "";
+      deptSelect.value = "";
+      alert("저장된 값이 초기화됐어요!");
+      go(1, true);
+    }
+
+    nextBtn.addEventListener("click", nextScreen);
+    backBtn.addEventListener("click", () => go(1));
+    toMapBtn.addEventListener("click", () => go(2));
+    resetBtn.addEventListener("click", resetAll);
+
+    regionEls.forEach(el => {
+      el.addEventListener("click", () => openRegion(el.dataset.region));
+    });
+
+    // ====== 툴팁(장소명) ======
+    const tooltip = document.getElementById("tooltip");
+    function showTooltip(text, clientX, clientY) {
+      tooltip.textContent = text;
+      tooltip.style.left = `${clientX}px`;
+      tooltip.style.top = `${clientY}px`;
+      tooltip.classList.add("show");
+    }
+    function moveTooltip(clientX, clientY) {
+      tooltip.style.left = `${clientX}px`;
+      tooltip.style.top = `${clientY}px`;
+    }
+    function hideTooltip() {
+      tooltip.classList.remove("show");
+    }
+
+    regionEls.forEach(el => {
+      const name = el.dataset.region;
+
+      el.addEventListener("mouseenter", (e) => showTooltip(name, e.clientX, e.clientY));
+      el.addEventListener("mousemove", (e) => moveTooltip(e.clientX, e.clientY));
+      el.addEventListener("mouseleave", hideTooltip);
+
+      el.addEventListener("touchstart", (e) => {
+        const t = e.touches[0];
+        showTooltip(name, t.clientX, t.clientY);
+        setTimeout(hideTooltip, 900);
+      }, { passive: true });
+    });
+
+    window.addEventListener("scroll", hideTooltip, { passive: true });
+    window.addEventListener("resize", hideTooltip);
+
+    // ====== 모달(답변 남기기) ======
+    openCommentBtn.addEventListener("click", () => {
+      const region = localStorage.getItem(KEY_REGION);
+      if (!region) return;
+
+      const q = regionToQuestion[region] || "이 공간에 대한 한 줄을 남겨주세요.";
+      questionText.textContent = q;
+
+      commentInput.value = "";
+      commentModal.classList.add("show");
+      commentInput.focus();
+    });
+
+    closeCommentBtn.addEventListener("click", () => {
+      commentModal.classList.remove("show");
+    });
+
+    commentModal.addEventListener("click", (e) => {
+      if (e.target === commentModal) commentModal.classList.remove("show");
+    });
+
+    saveCommentBtn.addEventListener("click", async () => {
+      const region = localStorage.getItem(KEY_REGION);
+      const text = commentInput.value.trim();
+
+      if (!text) {
+        alert("답변을 입력해주세요!");
+        return;
+      }
+
+      const name = (localStorage.getItem(KEY_NAME) || "익명").trim();
+      const department = localStorage.getItem(KEY_DEPT) || "";
+      const question = regionToQuestion[region] || "이 공간에 대한 한 줄을 남겨주세요.";
+
+      try {
+        await saveCommentToFirestore(region, question, text, name, department);
+        commentModal.classList.remove("show");
+        commentInput.value = "";
+        alert("저장됐어요!");
+      } catch (e) {
+        console.error(e);
+        alert("저장 중 오류가 발생했어요. (콘솔 확인)");
+      }
+    });
+
+    // ====== 초기 로딩 ======
+    loadInputs();
+    updateBadges();
+
+    (function initRoute() {
+      const hasUser = (localStorage.getItem(KEY_NAME) || "").trim() && (localStorage.getItem(KEY_DEPT) || "");
+      const target = screenFromHash();
+
+      if (!hasUser && target !== 1) {
+        go(1, true);
+        return;
+      }
+
+      if (target === 3) {
+        const savedRegion = localStorage.getItem(KEY_REGION);
+        if (!savedRegion) {
+          go(2, true);
+          return;
+        }
+        openRegion(savedRegion);
+        history.replaceState({ screen: 3 }, "", "#s3");
+        return;
+      }
+
+      go(target, true);
+    })();
+  </script>
+</body>
+</html>
