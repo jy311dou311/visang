@@ -282,6 +282,29 @@
       gap: 10px;
       justify-content: center;
     }
+
+    .treeStage{
+     position: relative;   /* ⭐ 이거 없으면 잎 다 날아감 */
+     width: 300px;         /* 나무 기준 크기 (원하면 조절) */
+     margin: 0 auto;
+    }
+
+
+    .tree{
+     position: relative;
+     width: 300px;   /* 기준 크기 */
+     height: auto;
+     margin: 0 auto;
+    }
+
+    .leaf{
+     position: absolute;
+     width: 28px;
+     height: 28px;
+     object-fit: contain;
+     pointer-events: none;
+    }
+
   </style>
 </head>
 <body>
