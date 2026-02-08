@@ -553,7 +553,12 @@
       if (e.key === "Enter") nextScreen();
     });
 
+
+
     function openRegion(regionName) {
+
+      console.log("선택된 구역:", JSON.stringify(regionName));
+
       localStorage.setItem(KEY_REGION, regionName);
 
       const imgSrc = regionToImage[regionName];
