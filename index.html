@@ -451,16 +451,13 @@
      "에듀테크존": { dx: 7, dy: 0 },
     };
 
-    // ✅ 캐릭터 크기 배율 적용
-    const sc = regionToCharacterScale[regionName] || 1;
-    characterHotspot.style.setProperty("--sc", sc);
 
     // ✅ 구역별 캐릭터 크기 배율
     const regionToCharacterScale = {
      "휴담": 1.0,
      "통실": 1.0,
      "스마트 클래스": 1.0,
-     "도서관": 1.25,        // 👈 여기!
+     "도서관": 1.5,        // 👈 여기!
      "스마트아카이브": 1.0,
      "교과서의 역사": 1.0,
      "에듀테크존": 1.0,
@@ -573,6 +570,10 @@
       const off = regionToCharacterOffset[regionName] || { dx: 0, dy: 0 };
       characterHotspot.style.setProperty("--dx", `${off.dx}px`);
       characterHotspot.style.setProperty("--dy", `${off.dy}px`);
+
+      // ✅ 캐릭터 크기 배율 적용
+      const sc = regionToCharacterScale[regionName] || 1;
+      characterHotspot.style.setProperty("--sc", sc);
 
       updateBadges();
       go(3);
