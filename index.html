@@ -123,7 +123,10 @@
       position:absolute;
       left: 50%;
       top: 50%;
-      transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scale(1);
+      transform: translate(
+       calc(-50% + var(--dx, 0px)),
+       calc(-50% + var(--dy, 0px))
+      ) scale(var(--sc, 1));
       width: 72px;
       height: 72px;
       object-fit: contain;
@@ -139,8 +142,12 @@
       transition: transform 120ms ease;
     }
     .characterHotspot:hover{
-     transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scale(1.03);
+     transform: translate(
+       calc(-50% + var(--dx, 0px)),
+       calc(-50% + var(--dy, 0px))
+      ) scale(calc(var(--sc, 1) * 1.03));
     }
+
 
     /* ✅ 툴팁 */
     .tooltip {
@@ -439,10 +446,22 @@
      "통실": { dx: 0, dy: 0 },
      "스마트 클래스": { dx: 0, dy: 0 },
      "도서관": { dx: 0, dy: 0 },
-     "스마트아카이브": { dx: 0, dy: 8 },
-     "교과서의 역사": { dx: 3, dy: 0 },
+     "스마트아카이브": { dx: -4, dy: 8 },
+     "교과서의 역사": { dx: 3, dy: 5 },
      "에듀테크존": { dx: 0, dy: 0 },
     };
+
+    // ✅ 구역별 캐릭터 크기 배율
+    const regionToCharacterScale = {
+     "휴담": 1.0,
+     "통실": 1.0,
+     "스마트 클래스": 1.0,
+     "도서관": 1.25,        // 👈 여기!
+     "스마트아카이브": 1.1,
+     "교과서의 역사": 1.15,
+     "에듀테크존": 1.0,
+    };
+
 
     /* =========================
        4) 라우팅(뒤로가기)
