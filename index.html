@@ -405,6 +405,18 @@
       "에듀테크존": "최근에 고민 많이 해서 “와 이건 잘 샀다 / 잘 했다” 싶은 선택이 있나요?",
     };
 
+    const regionToCharacterImage = {
+     "휴담": "character-hudam.png",
+     "통실": "character-tongsil.png",
+     "스마트 클래스": "character-smartclass.png",
+     "도서관": "character-library.png",
+     "스마트아카이브": "character-archive.png",
+     "교과서의 역사": "character-history.png",
+     "에듀테크존": "character-edutech.png",
+    };
+
+    const DEFAULT_CHARACTER_IMAGE = "character.png";
+
     const regionRotation = {
       "휴담": 0, "통실": 0, "스마트 클래스": 0, "도서관": 0,
       "스마트아카이브": 0, "교과서의 역사": 0, "에듀테크존": 0,
@@ -513,6 +525,10 @@
         regionImage.alt = "이미지가 없습니다.";
         regionImage.style.transform = "rotate(0deg)";
       }
+
+
+      const charSrc = regionToCharacterImage[regionName] || DEFAULT_CHARACTER_IMAGE;
+      characterHotspot.src = charSrc;
 
       // 캐릭터 위치 적용(현재 중앙)
       const pos = regionToCharacterPos[regionName] || { x: 50, y: 50 };
