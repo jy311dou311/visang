@@ -557,6 +557,7 @@
 
     function openRegion(regionName) {
       regionName = (regionName || "").trim();
+      console.log("선택된 구역:", JSON.stringify(regionName));
 
       localStorage.setItem(KEY_REGION, regionName);
 
