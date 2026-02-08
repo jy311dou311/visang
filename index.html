@@ -113,6 +113,8 @@
       border-radius: 12px;
       border: 1px solid #eee;
       background: #fafafa;
+      transform-origin: center center;
+      transition: transform 140ms ease;
       display:block;
     }
 
@@ -422,6 +424,11 @@
 
     const DEFAULT_CHARACTER_IMAGE = "character.png";
 
+    const regionRotation = {
+      "휴담": 0, "통실": 0, "스마트 클래스": 0, "도서관": 0,
+      "스마트아카이브": 0, "교과서의 역사": 0, "에듀테크존": 0,
+    };
+
     // 캐릭터 위치
     const regionToCharacterPos = {
       "휴담": { x: 50, y: 70 },
@@ -453,7 +460,7 @@
      "휴담": 1.0,
      "통실": 1.0,
      "스마트 클래스": 1.0,
-     "도서관": 1.5,        // 👈 여기!
+     "도서관": 1.25,        // 👈 여기!
      "스마트아카이브": 1.0,
      "교과서의 역사": 1.0,
      "에듀테크존": 1.0,
@@ -484,17 +491,9 @@
       return 1;
     }
 
-   window.addEventListener("popstate", () => {
-     const target = screenFromHash();
-     if (target === 3) {
-       const savedRegion = localStorage.getItem(KEY_REGION);
-       if (savedRegion) openRegion(savedRegion);
-       else go(2, true);
-       return;
-      }
-     renderScreen(target);
+    window.addEventListener("popstate", () => {
+      renderScreen(screenFromHash());
     });
-
 
     /* =========================
        5) 기본 저장/로딩
@@ -553,6 +552,8 @@
       if (imgSrc) {
         regionImage.src = imgSrc;
         regionImage.alt = `${regionName} 이미지`;
+        const deg = regionRotation[regionName] ?? 0;
+        regionImage.style.transform = `rotate(${deg}deg)`;
       } else {
         regionImage.removeAttribute("src");
         regionImage.alt = "이미지가 없습니다.";
