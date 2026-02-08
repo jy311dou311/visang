@@ -296,14 +296,14 @@
       <input
         type="text"
         id="commentInput"
-        placeholder="여기에 한 줄로 입력"
+        placeholder="여러분의 경험을 적어주세요!"
         maxlength="80"
       >
       <div class="modal-actions">
         <button id="saveCommentBtn">저장</button>
         <button id="closeCommentBtn">취소</button>
       </div>
-      <div class="hint" style="margin-top:10px;">※ 중앙수집.</div>
+      <div class="hint" style="margin-top:10px;">적어주신 경험은 수집하여 차후 상품 증정에 이용됩니다.</div>
     </div>
   </div>
 
@@ -393,13 +393,13 @@
     };
 
     const regionToText = {
-      "휴담": "문구를 입력하세요",
-      "통실": "문구를 입력하세요",
-      "스마트 클래스": "문구를 입력하세요",
-      "도서관": "문구를 입력하세요",
-      "스마트아카이브": "문구를 입력하세요",
-      "교과서의 역사": "문구를 입력하세요",
-      "에듀테크존": "문구를 입력하세요",
+      "휴담": "",
+      "통실": "",
+      "스마트 클래스": "",
+      "도서관": "",
+      "스마트아카이브": "",
+      "교과서의 역사": "",
+      "에듀테크존": "",
     };
 
     const regionToQuestion = {
@@ -544,7 +544,7 @@
       regionSub.textContent = regionToText[regionName] || `${regionName} 공간을 소개합니다.`;
 
       const q = regionToQuestion[regionName] || "이 공간에 대한 한 줄을 남겨주세요.";
-      regionQuestionEl.textContent = `질문: ${q}`;
+      regionQuestionEl.textContent = "";
 
       if (imgSrc) {
         regionImage.src = imgSrc;
