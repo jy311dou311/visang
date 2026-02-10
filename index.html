@@ -34,7 +34,7 @@
     }
     .hint { font-size: 13px; color: #666; margin-top: 6px; }
 
-    /* ====== Screen2: 지도만 ====== */
+    /*화면2*/
     .map-stage{
       position: relative;
       width: 100%;
@@ -57,7 +57,7 @@
       height: 100%;
     }
 
-    /* ✅ 클릭 구역 hover 강조 */
+    /*클릭 구역*/
     .region{
       fill: rgba(0,0,0,0);
       cursor: pointer;
@@ -94,7 +94,7 @@
       background: #f6f6f6;
     }
 
-    /* ===== Screen3: 이미지 프레임 + 캐릭터 오버레이 ===== */
+    /*3번 화면*/
     .viewer {
       display: grid;
       gap: 12px;
@@ -120,7 +120,7 @@
       display:block;
     }
 
-    /* ✅ 캐릭터: 살짝 확대(호버), 뿌연 배경/동그라미 효과 없음 */
+    /*캐릭터*/
     .characterHotspot{
       position:absolute;
       left: 50%;
@@ -151,7 +151,7 @@
     }
 
 
-    /* ✅ 툴팁 */
+    /*툴팁*/
     .tooltip {
       position: fixed;
       z-index: 9999;
@@ -169,7 +169,7 @@
     }
     .tooltip.show { opacity: 1; }
 
-    /* ===== 모달 ===== */
+    /*모달*/
     .modal{
       position: fixed;
       inset: 0;
@@ -191,8 +191,8 @@
     .modal-card input{
      width: min(280px, 80%);
      padding: 10px;
-     margin: 12px auto;   /* ✅ 가운데 정렬 */
-     display: block;      /* ✅ auto margin 먹게 */
+     margin: 12px auto;   
+     display: block;      
      box-sizing: border-box;
     }
 
@@ -205,7 +205,7 @@
 </head>
 <body>
 
-  <!-- 1) 입력 화면 -->
+  <!-- 화면1 -->
   <div id="screen1" class="screen active">
     <h1>정보 입력</h1>
 
@@ -223,7 +223,7 @@
     <button id="nextBtn">다음</button>
   </div>
 
-  <!-- 2) 지도 화면 (7구역) -->
+  <!-- 화면2 -->
   <div id="screen2" class="screen">
     <div class="card">
       <div class="title">
@@ -238,7 +238,7 @@
          </div>
      </div>
 
-      <!-- ✅ 지도만 -->
+      <!-- 지도만 -->
       <div class="map-stage">
         <img src="floor.png" alt="지도">
 
@@ -259,7 +259,7 @@
     </div>
   </div>
 
-  <!-- 3) 구역 상세 화면 -->
+  <!-- 화면3 -->
   <div id="screen3" class="screen">
     <div class="card">
       <div class="title">
@@ -293,7 +293,7 @@
   <!-- 툴팁 -->
   <div id="tooltip" class="tooltip"></div>
 
-  <!-- ✅ 답변 입력 모달 -->
+  <!-- 답변 모달 -->
   <div id="commentModal" class="modal">
     <div class="modal-card">
       <h3 style="margin-top:0">답변 입력</h3>
@@ -313,9 +313,7 @@
   </div>
 
   <script type="module">
-    /* =========================
-       1) Firebase 설정
-       ========================= */
+    /* Firebase 연동 */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import {
       getFirestore,
@@ -347,9 +345,7 @@
       });
     }
 
-    /* =========================
-       2) 저장 키 & DOM
-       ========================= */
+    /* 저장키 */
     const KEY_NAME = "saved_name";
     const KEY_DEPT = "saved_department";
     const KEY_REGION = "saved_region";
@@ -384,9 +380,7 @@
 
     const regionEls = document.querySelectorAll(".region");
 
-    /* =========================
-       3) 구역 매핑
-       ========================= */
+    /* 구역 매핑 */
     const regionToImage = {
       "휴담": "hudam.png",
       "통실": "tongsil.png",
@@ -398,7 +392,7 @@
     };
 
 
-    // ✅ 3번째 화면(사진 화면) 설명 문구 – 반드시 다 채우기
+    // 우리의 믿음 7개
     const regionToSubTextScreen3 = {
      "휴담": "당연한 것도 낯설게 본다",
      "통실": "현장에서 시작해서 현장을 넘어선다",
@@ -448,7 +442,7 @@
       "에듀테크존": { x: 33, y: 70 },
     };
 
-    // ✅ 구역별 미세 오프셋(px) : +dx는 오른쪽, +dy는 아래로
+    // 미세 오프셋
     const regionToCharacterOffset = {
      "휴담": { dx: 14, dy: 5 },
      "통실": { dx: 0, dy: 0 },
@@ -460,7 +454,7 @@
     };
 
 
-    // ✅ 구역별 캐릭터 크기 배율
+    // 구역별 크기 배율
     const regionToCharacterScale = {
      "휴담": 1.0,
      "통실": 1.0,
@@ -472,9 +466,7 @@
     };
 
 
-    /* =========================
-       4) 라우팅(뒤로가기)
-       ========================= */
+    /* 라우팅 */
     function renderScreen(n) {
       screen1.classList.toggle("active", n === 1);
       screen2.classList.toggle("active", n === 2);
@@ -500,9 +492,7 @@
       renderScreen(screenFromHash());
     });
 
-    /* =========================
-       5) 기본 저장/로딩
-       ========================= */
+    /* 저장과 로딩 */
     function saveInputs(name, dept) {
       localStorage.setItem(KEY_NAME, name);
       localStorage.setItem(KEY_DEPT, dept);
@@ -575,17 +565,17 @@
       const charSrc = regionToCharacterImage[regionName] || DEFAULT_CHARACTER_IMAGE;
       characterHotspot.src = charSrc;
 
-      // 캐릭터 위치 적용(현재 중앙)
+      // 캐릭터 위치
       const pos = regionToCharacterPos[regionName] || { x: 50, y: 50 };
       characterHotspot.style.left = `${pos.x}%`;
       characterHotspot.style.top = `${pos.y}%`;
 
-      // ✅ 미세 오프셋(px) 적용
+      // 미세 오프셋 적용
       const off = regionToCharacterOffset[regionName] || { dx: 0, dy: 0 };
       characterHotspot.style.setProperty("--dx", `${off.dx}px`);
       characterHotspot.style.setProperty("--dy", `${off.dy}px`);
 
-      // ✅ 캐릭터 크기 배율 적용
+      // 캐릭터 크기 배율 적용
       const sc = regionToCharacterScale[regionName] || 1;
       characterHotspot.style.setProperty("--sc", sc);
 
@@ -612,9 +602,7 @@
       el.addEventListener("click", () => openRegion(el.dataset.region));
     });
 
-    /* =========================
-       6) 툴팁(장소명)
-       ========================= */
+    /* 툴팁 */
     const tooltip = document.getElementById("tooltip");
     function showTooltip(text, clientX, clientY) {
       tooltip.textContent = text;
@@ -647,9 +635,7 @@
     window.addEventListener("scroll", hideTooltip, { passive: true });
     window.addEventListener("resize", hideTooltip);
 
-    /* =========================
-       7) 픽셀 퍼펙트 클릭(투명 영역 무시)
-       ========================= */
+    /* 퍼펙트 클릭 */
     function makePixelPerfectClickable(imgEl, onHit) {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
@@ -683,9 +669,7 @@
       });
     }
 
-    /* =========================
-       8) 모달(캐릭터 클릭 → 입력)
-       ========================= */
+    /* 모달->입력 */
     function openCommentModal(){
       const region = localStorage.getItem(KEY_REGION);
       if (!region) return;
@@ -742,9 +726,7 @@
       }
     });
 
-    /* =========================
-       9) 초기 로딩
-       ========================= */
+    /* 초기 로딩 */
     loadInputs();
     updateBadges();
 
