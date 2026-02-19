@@ -4,44 +4,213 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>보물찾기</title>
+
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 60px 0; background:#fff; }
+    /* ===============================
+      Visang-ish Brand Tone (Clean + Trust + Modern)
+      - Soft gray background
+      - Blue primary accent
+      - Subtle borders, no "page card" outline
+      - Consistent radius, spacing, typography
+    =============================== */
+
+    :root{
+      --bg: #F6F8FB;
+      --surface: #FFFFFF;
+      --text: #111827;
+      --muted: #6B7280;
+      --border: rgba(17,24,39,0.10);
+      --shadow: 0 14px 40px rgba(17,24,39,0.08);
+
+      --primary: #2563EB;         /* blue */
+      --primary-weak: rgba(37,99,235,0.10);
+      --primary-strong: rgba(37,99,235,0.18);
+
+      --danger: #EF4444;
+
+      --radius-xl: 20px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 10px;
+
+      --maxw: 1100px;
+    }
+
+    *{ box-sizing: border-box; }
+    html,body{ height: 100%; }
+    body{
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Apple SD Gothic Neo",
+                   "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 700px at 20% -10%, rgba(37,99,235,0.10), transparent 60%),
+                  radial-gradient(900px 600px at 90% 10%, rgba(37,99,235,0.07), transparent 55%),
+                  var(--bg);
+    }
+
+    /* layout */
     .screen { display: none; }
     .screen.active { display: block; }
 
-    input, select { padding: 10px; margin: 6px; width: 260px; max-width: 90vw; }
-    button { padding: 10px 18px; margin-top: 12px; cursor: pointer; }
+    .container{
+      width: min(var(--maxw), 92vw);
+      margin: 28px auto 48px;
+    }
 
-    * { box-sizing: border-box; }
+    /* Top brand bar */
+    .brandbar{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 2px 18px;
+    }
+    .brand{
+      display:flex; align-items:center; gap: 10px;
+      user-select:none;
+    }
+    .brandMark{
+      width: 36px; height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(37,99,235,0.95), rgba(37,99,235,0.65));
+      box-shadow: 0 10px 24px rgba(37,99,235,0.25);
+    }
+    .brandText{
+      display:flex; flex-direction: column; line-height: 1.1;
+    }
+    .brandText .t1{ font-weight: 800; letter-spacing: -0.2px; }
+    .brandText .t2{ color: var(--muted); font-size: 12px; margin-top: 2px; }
 
-    .card{
-      width: min(980px, 95vw);
+    .pill{
+      display:inline-flex; align-items:center; gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 20px rgba(17,24,39,0.06);
+      backdrop-filter: blur(6px);
+      font-size: 13px;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    /* sections (no outer page border) */
+    .section{
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .sectionHead{
+      padding: 18px 20px;
+      display:flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(37,99,235,0.06), transparent 55%);
+    }
+
+    .hTitle{
+      margin:0;
+      font-size: 26px;
+      letter-spacing: -0.4px;
+    }
+    .hDesc{
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .hDesc.oneLine {
+     white-space: nowrap;
+     overflow: hidden;
+     text-overflow: ellipsis;
+    }
+    .rightCol{
+      display:flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    /* Controls */
+    .field{
+      width: min(420px, 92vw);
       margin: 0 auto;
-      border: 1px solid #ddd;
-      border-radius: 16px;
-      padding: 14px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-      background: #fff;
-      text-align: left;
+      padding: 22px 18px 24px;
     }
-    .title{
-      display:flex; justify-content: space-between; align-items: baseline;
-      gap: 10px; margin-bottom: 10px;
-    }
-    .badge{
-      font-size: 12px; padding: 4px 10px; border-radius: 999px;
-      border: 1px solid #ddd; background: #f7f7f7; white-space: nowrap;
-    }
-    .hint { font-size: 13px; color: #666; margin-top: 6px; }
 
-    /*화면2*/
+    .label{
+      text-align:left;
+      font-size: 13px;
+      color: var(--muted);
+      margin: 10px 0 6px;
+    }
+
+    input, select{
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.95);
+      outline: none;
+      font-size: 15px;
+      color: var(--text);
+      transition: box-shadow 120ms ease, border-color 120ms ease, transform 120ms ease;
+    }
+    input:focus, select:focus{
+      border-color: rgba(37,99,235,0.45);
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.14);
+    }
+
+    .btn-row{
+      display:flex; justify-content:center; gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    button{
+      padding: 11px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }
+    button:hover{ transform: translateY(-1px); box-shadow: 0 10px 20px rgba(17,24,39,0.08); }
+    button:active{ transform: translateY(0px); box-shadow: none; }
+    button:disabled{ opacity: 0.6; cursor: not-allowed; transform:none; box-shadow:none; }
+
+    .btnPrimary{
+      border: 1px solid rgba(37,99,235,0.35);
+      background: linear-gradient(180deg, rgba(37,99,235,1), rgba(37,99,235,0.88));
+      color: #fff;
+      box-shadow: 0 14px 24px rgba(37,99,235,0.22);
+    }
+    .btnPrimary:hover{ box-shadow: 0 18px 32px rgba(37,99,235,0.26); }
+    .btnGhost{
+      background: rgba(255,255,255,0.65);
+    }
+    .btnDanger{
+      border-color: rgba(239,68,68,0.35);
+      color: #991B1B;
+      background: rgba(239,68,68,0.08);
+    }
+
+    /* Map stage */
+    .mapWrap{ padding: 16px 18px 18px; }
     .map-stage{
       position: relative;
       width: 100%;
-      border-radius: 14px;
+      border-radius: var(--radius-lg);
       overflow: hidden;
-      border: 1px solid #eee;
-      background: #fafafa;
+      border: 1px solid var(--border);
+      background: #fff;
+      box-shadow: 0 14px 30px rgba(17,24,39,0.06);
     }
     .map-stage img{
       display: block;
@@ -57,258 +226,426 @@
       height: 100%;
     }
 
-    /*클릭 구역*/
+    /* 클릭 구역 */
     .region{
       fill: rgba(0,0,0,0);
       cursor: pointer;
       transition: fill 160ms ease, stroke 160ms ease, filter 160ms ease;
+      stroke: rgba(37,99,235,0);
+      stroke-width: 0;
     }
     .region:hover{
-      fill: rgba(0, 123, 255, 0.25);
-      stroke: rgba(0, 123, 255, 0.9);
+      fill: var(--primary-strong);
+      stroke: rgba(37,99,235,0.95);
       stroke-width: 3;
-      filter: drop-shadow(0 0 6px rgba(0,123,255,0.45));
+      filter: drop-shadow(0 0 10px rgba(37,99,235,0.30));
     }
 
-    .btn-row{
-      display:flex; justify-content:center; gap: 10px;
-      flex-wrap: wrap; margin-top: 12px;
-    }
+    /* Screen3 viewer */
+    .contentPad{ padding: 16px 18px 18px; }
 
-    .title-right{
-      display: flex;
+    .metaLine{
+      display:flex;
       flex-direction: column;
-      align-items: flex-end;
-      gap: 8px;
+      gap: 6px;
+      text-align:left;
+    }
+    .valueLine{
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.3px;
+    }
+    .subLine{
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .questionLine{
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      background: var(--primary-weak);
+      border: 1px solid rgba(37,99,235,0.18);
+      color: rgba(17,24,39,0.95);
+      font-weight: 700;
+      font-size: 14px;
+      text-align:left;
     }
 
-    .reset-mini{
-      padding: 8px 12px;
-      border-radius: 12px;
-      border: 1px solid #ddd;
-      background: #fff;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    .reset-mini:hover{
-      background: #f6f6f6;
-    }
-
-    /*3번 화면*/
-    .viewer {
-      display: grid;
-      gap: 12px;
+    .viewer{
+      display:grid;
       place-items: center;
-      text-align: center;
-      padding-top: 6px;
+      padding-top: 10px;
     }
+
     .photoFrame{
       position: relative;
       width: 100%;
-      max-width: 420px;
+      max-width: 720px;
     }
     .viewer img#regionImage{
       width: 100%;
-      max-width: 420px;
-      height: 260px;
+      height: min(54vw, 420px);
       object-fit: cover;
-      border-radius: 12px;
-      border: 1px solid #eee;
-      background: #fafafa;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      background: #fff;
+      box-shadow: 0 18px 40px rgba(17,24,39,0.08);
       transform-origin: center center;
       transition: transform 140ms ease;
       display:block;
     }
 
-    /*캐릭터*/
+    /* 캐릭터 */
     .characterHotspot{
       position:absolute;
       left: 50%;
       top: 50%;
       transform: translate(
-       calc(-50% + var(--dx, 0px)),
-       calc(-50% + var(--dy, 0px))
+        calc(-50% + var(--dx, 0px)),
+        calc(-50% + var(--dy, 0px))
       ) scale(var(--sc, 1));
-      width: 72px;
-      height: 72px;
+      width: 78px;
+      height: 78px;
       object-fit: contain;
       cursor: pointer;
+      pointer-events: auto;
+     touch-action: manipulation;
       user-select: none;
       -webkit-user-drag: none;
 
       background: none;
-      backdrop-filter: none;
       border-radius: 0;
       box-shadow: none;
-
-      transition: transform 120ms ease;
+      transition: transform 120ms ease, filter 120ms ease;
+      filter: drop-shadow(0 14px 20px rgba(17,24,39,0.22));
     }
     .characterHotspot:hover{
-     transform: translate(
-       calc(-50% + var(--dx, 0px)),
-       calc(-50% + var(--dy, 0px))
-      ) scale(calc(var(--sc, 1) * 1.03));
+      transform: translate(
+        calc(-50% + var(--dx, 0px)),
+        calc(-50% + var(--dy, 0px))
+      ) scale(calc(var(--sc, 1) * 1.04));
+      filter: drop-shadow(0 18px 26px rgba(17,24,39,0.26));
     }
 
+    /* ===== 최근 경험(댓글 영역) ===== */
+    .commentsBox{
+      margin-top: 16px;
+      padding: 14px 14px 12px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.78);
+      box-shadow: 0 14px 26px rgba(17,24,39,0.06);
+    }
+    .commentsHead{
+      display:flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .commentsTitle{
+      font-weight: 800;
+      letter-spacing: -0.2px;
+    }
+    .commentsMeta{
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .commentsList{
+      display: grid;
+      gap: 10px;
+    }
+    .commentItem{
+      display:flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.92);
+    }
+    .commentDot{
+      margin-top: 6px;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(37,99,235,0.85);
+      flex: 0 0 auto;
+    }
+    .commentText{
+      font-size: 14px;
+      line-height: 1.4;
+      color: var(--text);
+      word-break: break-word;
+    }
+    .commentSub{
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .commentsHint{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
 
-    /*툴팁*/
-    .tooltip {
+    /* 툴팁 */
+    .tooltip{
       position: fixed;
       z-index: 9999;
-      padding: 6px 10px;
-      border-radius: 10px;
-      background: rgba(0,0,0,0.78);
+      padding: 7px 10px;
+      border-radius: 12px;
+      background: rgba(17,24,39,0.88);
       color: #fff;
       font-size: 13px;
-      line-height: 1.2;
       pointer-events: none;
       opacity: 0;
       transform: translate(-50%, -120%);
       transition: opacity 80ms ease;
       white-space: nowrap;
+      box-shadow: 0 18px 34px rgba(0,0,0,0.24);
     }
-    .tooltip.show { opacity: 1; }
+    .tooltip.show{ opacity: 1; }
 
-    /*모달*/
+    /* 모달 */
     .modal{
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.45);
+      background: rgba(17,24,39,0.55);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 9999;
+      padding: 16px;
     }
-    .modal.show{ display: flex; }
+    .modal.show{ display:flex; }
+
     .modal-card{
-      background: #fff;
-      border-radius: 16px;
-      padding: 20px;
-      width: min(360px, 90vw);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.2);
-      text-align: center;
+      width: min(420px, 92vw);
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(255,255,255,0.55);
+      box-shadow: 0 28px 60px rgba(0,0,0,0.25);
+      padding: 18px 18px 16px;
+      text-align: left;
     }
-    .modal-card input{
-     width: min(280px, 80%);
-     padding: 10px;
-     margin: 12px auto;   
-     display: block;      
-     box-sizing: border-box;
+    .modal-title{
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+    }
+    .modal-hint{
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
     }
 
+    .modal-card input{
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.98);
+      font-size: 15px;
+    }
     .modal-actions{
-      display: flex;
+      display:flex;
       gap: 10px;
-      justify-content: center;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+
+    /* Small helpers */
+    .note{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 520px){
+      .hTitle{ font-size: 22px; }
+      .sectionHead{ padding: 16px; }
+      .mapWrap{ padding: 14px; }
+      .contentPad{ padding: 14px; }
     }
   </style>
 </head>
+
 <body>
-
-  <!-- 화면1 -->
-  <div id="screen1" class="screen active">
-    <h1>정보 입력</h1>
-
-    <input type="text" id="name" placeholder="이름" autocomplete="name" /><br>
-
-    <select id="department">
-      <option value="">부서 선택</option>
-      <option value="에듀테크콘텐츠1">에듀테크콘텐츠1</option>
-      <option value="라키비움">라키비움</option>
-      <option value="기출탭탭">기출탭탭</option>
-      <option value="국어2">국어2</option>
-      <option value="티칭콘텐츠개발3">티칭콘텐츠개발3</option>
-    </select><br>
-
-    <button id="nextBtn">다음</button>
-  </div>
-
-  <!-- 화면2 -->
-  <div id="screen2" class="screen">
-    <div class="card">
-      <div class="title">
-         <div>
-             <h2 style="margin:0">각각의 구역을 눌러보세요!</h2>
-             <div class="hint">구역을 눌러주세요!</div>
-         </div>
-
-         <div class="title-right">
-             <div class="badge" id="userBadge"></div>
-             <button id="resetBtn" class="reset-mini">저장값 초기화</button>
-         </div>
-     </div>
-
-      <!-- 지도만 -->
-      <div class="map-stage">
-        <img src="floor.png" alt="지도">
-
-        <svg viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid meet" aria-label="클릭 가능한 7구역">
-          <rect class="region" data-region="휴담" x="205" y="115" width="466" height="110" rx="28" ry="28"></rect>
-          <rect class="region" data-region="통실" x="671" y="115" width="765" height="287" rx="28" ry="28"></rect>
-          <rect class="region" data-region="스마트 클래스" x="1365" y="402" width="70" height="253" rx="28" ry="28"></rect>
-          <rect class="region" data-region="도서관" x="97" y="225" width="203" height="447" rx="28" ry="28"></rect>
-          <rect class="region" data-region="스마트아카이브" x="97" y="780" width="248" height="88" rx="28" ry="28"></rect>
-          <rect class="region" data-region="교과서의 역사" x="345" y="780" width="841" height="88" rx="28" ry="28"></rect>
-          <rect class="region" data-region="에듀테크존" x="315" y="225" width="248" height="70" rx="28" ry="28"></rect>
-        </svg>
-      </div>
-
-      <div class="btn-row">
-        <button id="backBtn">뒤로</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 화면3 -->
-  <div id="screen3" class="screen">
-    <div class="card">
-      <div class="title">
-        <div>
-          <h2 style="margin:0" id="regionTitle">구역</h2>
-          <div class="hint" id="regionSub"></div>
-          <div class="hint" id="regionQuestion" style="margin-top:8px; font-weight:600; color:#333;"></div>
-        </div>
-        <div class="badge" id="userBadge3"></div>
-      </div>
-
-      <div class="viewer">
-        <div class="photoFrame">
-          <img id="regionImage" alt="선택된 구역 이미지">
-          <img
-            id="characterHotspot"
-            class="characterHotspot"
-            src="character.png"
-            alt="한 줄 입력하기"
-            title="클릭해서 한 줄 입력"
-          />
+  <div class="container">
+    <!-- 브랜드바(전체 공통) -->
+    <div class="brandbar">
+      <div class="brand">
+        <div class="brandMark" aria-hidden="true"></div>
+        <div class="brandText">
+          <div class="t1">보물찾기</div>
         </div>
       </div>
+    </div>
 
-      <div class="btn-row">
-        <button id="toMapBtn">지도 돌아가기</button>
+    <!-- 화면1 -->
+    <div id="screen1" class="screen active">
+      <div class="section">
+        <div class="sectionHead">
+          <div>
+            <h1 class="hTitle" style="margin:0;">정보를 입력해 주세요.</h1>
+            <div class="hDesc">이름과 Cell을 입력해 주세요.</div>
+          </div>
+          <div class="rightCol">
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="label">이름</div>
+          <input type="text" id="name" placeholder="이름을 입력하세요" autocomplete="name" />
+
+          <div class="label">Cell</div>
+          <select id="department">
+            <option value="">Cell을 선택하세요</option>
+            <option value="과학4">과학4</option>
+            <option value="교과서정책">교과서정책</option>
+            <option value="국어1">국어1</option>
+            <option value="국어2">국어2</option>
+            <option value="국어3">국어3</option>
+            <option value="국어4">국어4</option>
+            <option value="국어5">국어5</option>
+            <option value="기출탭탭">기출탭탭</option>
+            <option value="라키비움">라키비움</option>
+            <option value="에듀테크콘텐츠1">에듀테크콘텐츠1</option>
+            <option value="에듀테크콘텐츠2">에듀테크콘텐츠2</option>
+            <option value="에듀테크콘텐츠3">에듀테크콘텐츠3</option>
+            <option value="에듀테크콘텐츠기획">에듀테크콘텐츠기획</option>
+            <option value="영어1">영어1</option>
+            <option value="영어2">영어2</option>
+            <option value="영어4">영어4</option>
+            <option value="창의융합콘텐츠">창의융합콘텐츠</option>
+            <option value="티칭콘텐츠개발2">티칭콘텐츠개발2</option>
+            <option value="티칭콘텐츠개발3">티칭콘텐츠개발3</option>
+          </select>
+
+          <div class="btn-row" style="margin-top:18px;">
+            <button class="btnPrimary" id="nextBtn">시작하기</button>
+          </div>
+
+          <div class="note">※ 입력 정보는 이 기기에 저장되어 다음 접속 시 자동으로 채워집니다.</div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- 툴팁 -->
-  <div id="tooltip" class="tooltip"></div>
+    <!-- 화면2 -->
+    <div id="screen2" class="screen">
+      <div class="section">
+        <div class="sectionHead">
+          <div>
+            <h2 class="hTitle" style="margin:0;">각각의 구역을 눌러보세요!</h2>
+            <div class="hDesc">
+               휴담, 에듀테크존, 도서관, 스마트아카이브, 교과서의 역사 <br>
+               스마트클래스, 통실의 구역을 눌러보세요!</div>
+            <div class="hDesc oneLine">저장값 초기화를 누르면 기기에 저장된 입력 정보가 초기화 됩니다.</div>
+          </div>
+          <div class="rightCol">
+            <div class="pill" id="userBadge"></div>
+            <button id="resetBtn" class="btnDanger">저장값 초기화</button>
+          </div>
+        </div>
 
-  <!-- 답변 모달 -->
-  <div id="commentModal" class="modal">
-    <div class="modal-card">
-      <h3 style="margin-top:0">답변 입력</h3>
-      <div id="questionText" class="hint" style="margin-top:-6px;"></div>
-      <input
-        type="text"
-        id="commentInput"
-        placeholder="여러분의 경험을 적어주세요!"
-        maxlength="80"
-      >
-      <div class="modal-actions">
-        <button id="saveCommentBtn">저장</button>
-        <button id="closeCommentBtn">취소</button>
+        <div class="mapWrap">
+          <div class="map-stage" aria-label="라키비움 지도">
+            <img src="floor.png" alt="지도">
+
+            <svg viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid meet" aria-label="클릭 가능한 7구역">
+              <rect class="region" data-region="휴담" x="205" y="115" width="466" height="110" rx="28" ry="28"></rect>
+              <rect class="region" data-region="통실" x="671" y="115" width="765" height="287" rx="28" ry="28"></rect>
+              <rect class="region" data-region="스마트 클래스" x="1365" y="402" width="70" height="253" rx="28" ry="28"></rect>
+              <rect class="region" data-region="도서관" x="97" y="225" width="203" height="447" rx="28" ry="28"></rect>
+              <rect class="region" data-region="스마트아카이브" x="97" y="780" width="248" height="88" rx="28" ry="28"></rect>
+              <rect class="region" data-region="교과서의 역사" x="345" y="780" width="841" height="88" rx="28" ry="28"></rect>
+              <rect class="region" data-region="에듀테크존" x="315" y="225" width="248" height="70" rx="28" ry="28"></rect>
+            </svg>
+          </div>
+
+          <div class="btn-row">
+            <button id="backBtn" class="btnGhost">이전</button>
+          </div>
+        </div>
       </div>
-      <div class="hint" style="margin-top:10px;">적어주신 경험은 수집하여 차후 상품 증정에 이용됩니다.</div>
+    </div>
+
+    <!-- 화면3 -->
+    <div id="screen3" class="screen">
+      <div class="section">
+        <div class="sectionHead">
+          <div class="metaLine">
+            <div class="valueLine" id="regionTitle">구역</div>
+            <div class="subLine" id="regionSub"></div>
+          </div>
+          <div class="rightCol">
+            <div class="pill" id="userBadge3"></div>
+          </div>
+        </div>
+
+        <div class="contentPad">
+          <div class="viewer">
+            <div class="photoFrame">
+              <img id="regionImage" alt="선택된 구역 이미지">
+              <img
+                id="characterHotspot"
+                class="characterHotspot"
+                src="character.png"
+                alt="한 줄 입력하기"
+                title="클릭해서 한 줄 입력"
+              />
+            </div>
+          </div>
+
+          <!-- ✅ 사진과 '지도 돌아가기' 사이: 최근 경험 5개 -->
+          <div class="commentsBox" aria-label="최근 경험">
+            <div class="commentsHead">
+              <div class="commentsTitle">최근에 남긴 한 줄</div>
+              <div class="commentsMeta" id="commentsMeta"></div>
+            </div>
+
+            <div id="commentsList" class="commentsList"></div>
+
+            <div class="commentsHint" id="commentsHint">※ 최근 5개를 보여줘요.</div>
+          </div>
+
+          <div class="btn-row" style="margin-top:16px;">
+            <button id="toMapBtn" class="btnGhost">지도 돌아가기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 툴팁 -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <!-- 답변 모달 -->
+    <div id="commentModal" class="modal">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-label="답변 입력">
+        <h3 class="modal-title">한 줄 남기기</h3>
+        <div id="questionText" class="modal-hint"></div>
+
+        <input
+          type="text"
+          id="commentInput"
+          placeholder="여러분의 경험을 적어주세요!"
+          maxlength="80"
+        />
+
+        <div class="modal-actions">
+          <button id="closeCommentBtn" class="btnGhost">취소</button>
+          <button id="saveCommentBtn" class="btnPrimary">저장</button>
+        </div>
+
+        <div class="note">※ 적어주신 경험은 수집하여 차후 상품 증정에 이용됩니다.</div>
+      </div>
     </div>
   </div>
 
@@ -319,7 +656,12 @@
       getFirestore,
       collection,
       addDoc,
-      serverTimestamp
+      serverTimestamp,
+      getDocs,
+      query,
+      where,
+      orderBy,
+      limit
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -345,6 +687,99 @@
       });
     }
 
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function maskName(rawName){
+     if (!rawName) return "";
+     const name = String(rawName).trim().replace(/\s+/g, " ");
+     if (!name) return "";
+     const first = name[0];
+     const restLen = Math.max(name.length - 1, 1);
+     return first + "*".repeat(restLen);
+    }
+
+
+    async function loadRecentComments(regionName) {
+      if (!regionName) return;
+
+      commentsMeta.textContent = "불러오는 중…";
+      commentsList.innerHTML = `
+        <div class="commentItem"><div class="commentDot"></div><div class="commentText">최근 경험을 불러오고 있어요…</div></div>
+      `;
+
+      try {
+        const q = query(
+          collection(db, "comments"),
+          where("region", "==", regionName),
+          orderBy("createdAt", "desc"),
+          limit(5)
+        );
+
+        const snap = await getDocs(q);
+
+        const items = [];
+        snap.forEach((doc) => {
+          const d = doc.data();
+          items.push({
+            text: (d.text || "").toString(),
+            department: (d.department || "").toString(),
+            name: (d.name || "").toString(),
+            createdAt: d.createdAt || null
+          });
+        });
+
+        commentsMeta.textContent = `총 ${items.length}개 표시`;
+        commentsHint.textContent = "※ 최근 5개를 보여줘요.";
+
+        if (items.length === 0) {
+          commentsList.innerHTML = `
+            <div class="commentItem">
+              <div class="commentDot"></div>
+              <div>
+                <div class="commentText">아직 남겨진 경험이 없어요.</div>
+                <div class="commentSub">캐릭터를 눌러 첫 번째 한 줄을 남겨보세요!</div>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        // 개인정보 부담 줄이기: 부서만 표기(이름 표시 원하면 commentSub에 추가하면 됨)
+        commentsList.innerHTML = items.map((it) => `
+          <div class="commentItem">
+            <div class="commentDot"></div>
+            <div>
+              <div class="commentText">${escapeHtml(it.text)}</div>
+              <div class="commentSub">
+               ${escapeHtml(it.department || "Cell 미입력")} · ${escapeHtml(maskName(it.name))}
+              </div>
+            </div>
+          </div>
+        `).join("");
+
+      } catch (e) {
+        console.error(e);
+        commentsMeta.textContent = "불러오기 실패";
+        commentsHint.textContent = "※ 댓글을 불러오지 못했어요. (콘솔 확인)";
+        commentsList.innerHTML = `
+          <div class="commentItem">
+            <div class="commentDot"></div>
+            <div>
+              <div class="commentText">최근 경험을 불러오지 못했어요.</div>
+              <div class="commentSub">네트워크/권한/인덱스를 확인해주세요.</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
     /* 저장키 */
     const KEY_NAME = "saved_name";
     const KEY_DEPT = "saved_department";
@@ -368,7 +803,6 @@
     const regionTitle = document.getElementById("regionTitle");
     const regionSub = document.getElementById("regionSub");
     const regionImage = document.getElementById("regionImage");
-    const regionQuestionEl = document.getElementById("regionQuestion");
 
     const characterHotspot = document.getElementById("characterHotspot");
 
@@ -377,6 +811,10 @@
     const saveCommentBtn = document.getElementById("saveCommentBtn");
     const closeCommentBtn = document.getElementById("closeCommentBtn");
     const questionText = document.getElementById("questionText");
+
+    const commentsList = document.getElementById("commentsList");
+    const commentsMeta = document.getElementById("commentsMeta");
+    const commentsHint = document.getElementById("commentsHint");
 
     const regionEls = document.querySelectorAll(".region");
 
@@ -391,18 +829,16 @@
       "에듀테크존": "edutech.png",
     };
 
-
     // 우리의 믿음 7개
     const regionToSubTextScreen3 = {
-     "휴담": "당연한 것도 낯설게 본다",
-     "통실": "현장에서 시작해서 현장을 넘어선다",
-     "스마트 클래스": "내가 즐기면서 하는 일이 우리를 성장시킨다",
-     "도서관": "나는 성숙한 마음으로 경청하고, 다름을 존중한다",
-     "스마트아카이브": "나는 동료가 나의 성장을 위한 동반자임을 믿는다",
-     "교과서의 역사": "나는 내가 선택한 이 곳에서 가치 있는 일을 하고 있다",
-     "에듀테크존": "오늘의 치열한 고민이 내일 최선의 결과가 된다",
+      "휴담": "당연한 것도 낯설게 본다",
+      "통실": "현장에서 시작해서 현장을 넘어선다",
+      "스마트 클래스": "내가 즐기면서 하는 일이 우리를 성장시킨다",
+      "도서관": "나는 성숙한 마음으로 경청하고, 다름을 존중한다",
+      "스마트아카이브": "나는 동료가 나의 성장을 위한 동반자임을 믿는다",
+      "교과서의 역사": "나는 내가 선택한 이 곳에서 가치 있는 일을 하고 있다",
+      "에듀테크존": "오늘의 치열한 고민이 내일 최선의 결과가 된다",
     };
-
 
     const regionToQuestion = {
       "휴담": "최근에 “이게 원래 이렇게 하는 거였어?” 하고 다시 보게 된 게 있다면?",
@@ -415,15 +851,14 @@
     };
 
     const regionToCharacterImage = {
-     "휴담": "character-hudam.png",
-     "통실": "character-tongsil.png",
-     "스마트 클래스": "character-smartclass.png",
-     "도서관": "character-library.png",
-     "스마트아카이브": "character-archive.png",
-     "교과서의 역사": "character-history.png",
-     "에듀테크존": "character-edutech.png",
+      "휴담": "character-hudam.png",
+      "통실": "character-tongsil.png",
+      "스마트 클래스": "character-smartclass.png",
+      "도서관": "character-library.png",
+      "스마트아카이브": "character-archive.png",
+      "교과서의 역사": "character-history.png",
+      "에듀테크존": "character-edutech.png",
     };
-
     const DEFAULT_CHARACTER_IMAGE = "character.png";
 
     const regionRotation = {
@@ -433,38 +868,36 @@
 
     // 캐릭터 위치
     const regionToCharacterPos = {
-      "휴담": { x: 50, y: 70 },
+      "휴담": { x: 50, y: 71 },
       "통실": { x: 50, y: 50 },
       "스마트 클래스": { x: 15, y: 80 },
-      "도서관": { x: 78, y: 55 },
-      "스마트아카이브": { x: 25, y: 50 },
-      "교과서의 역사": { x: 50, y: 30 },
-      "에듀테크존": { x: 33, y: 70 },
+      "도서관": { x: 77, y: 57 },
+      "스마트아카이브": { x: 27, y: 52 },
+      "교과서의 역사": { x: 50, y: 33 },
+      "에듀테크존": { x: 34, y: 71 },
     };
 
     // 미세 오프셋
     const regionToCharacterOffset = {
-     "휴담": { dx: 14, dy: 5 },
-     "통실": { dx: 0, dy: 0 },
-     "스마트 클래스": { dx: 0, dy: 0 },
-     "도서관": { dx: 5, dy: 8 },
-     "스마트아카이브": { dx: 3, dy: 7 },
-     "교과서의 역사": { dx: 3, dy: 5 },
-     "에듀테크존": { dx: 7, dy: 3 },
+      "휴담": { dx: 14, dy: 5 },
+      "통실": { dx: 0, dy: 0 },
+      "스마트 클래스": { dx: 0, dy: 0 },
+      "도서관": { dx: 7, dy: 8 },
+      "스마트아카이브": { dx: 3, dy: 7 },
+      "교과서의 역사": { dx: 3, dy: 5 },
+      "에듀테크존": { dx: 9, dy: 6 },
     };
-
 
     // 구역별 크기 배율
     const regionToCharacterScale = {
-     "휴담": 1.0,
-     "통실": 1.0,
-     "스마트 클래스": 1.75,
-     "도서관": 1.0,       
-     "스마트아카이브": 1.15,
-     "교과서의 역사": 1.0,
-     "에듀테크존": 1.0,
+      "휴담": 1.2,
+      "통실": 1.0,
+      "스마트 클래스": 1.75,
+      "도서관": 1.3,
+      "스마트아카이브": 1.15,
+      "교과서의 역사": 1.0,
+      "에듀테크존": 1.0,
     };
-
 
     /* 라우팅 */
     function renderScreen(n) {
@@ -534,21 +967,16 @@
       if (e.key === "Enter") nextScreen();
     });
 
-
-
     function openRegion(regionName) {
       regionName = (regionName || "").trim();
-      console.log("선택된 구역:", JSON.stringify(regionName));
-
       localStorage.setItem(KEY_REGION, regionName);
 
       const imgSrc = regionToImage[regionName];
+
       regionTitle.textContent = regionName;
       regionSub.textContent = regionToSubTextScreen3[regionName] || "";
 
-
       const q = regionToQuestion[regionName] || "이 공간에 대한 한 줄을 남겨주세요.";
-      regionQuestionEl.textContent = "";
 
       if (imgSrc) {
         regionImage.src = imgSrc;
@@ -560,7 +988,6 @@
         regionImage.alt = "이미지가 없습니다.";
         regionImage.style.transform = "rotate(0deg)";
       }
-
 
       const charSrc = regionToCharacterImage[regionName] || DEFAULT_CHARACTER_IMAGE;
       characterHotspot.src = charSrc;
@@ -581,6 +1008,9 @@
 
       updateBadges();
       go(3);
+
+      // 최근 5개 댓글 로드
+      loadRecentComments(regionName);
     }
 
     function resetAll() {
@@ -635,7 +1065,7 @@
     window.addEventListener("scroll", hideTooltip, { passive: true });
     window.addEventListener("resize", hideTooltip);
 
-    /* 퍼펙트 클릭 */
+    /* 퍼펙트 클릭(투명영역 무시) */
     function makePixelPerfectClickable(imgEl, onHit) {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
@@ -654,18 +1084,23 @@
       if (imgEl.complete) drawToCanvas();
       imgEl.addEventListener("load", drawToCanvas);
 
-      imgEl.addEventListener("pointerdown", (e) => {
-        const rect = imgEl.getBoundingClientRect();
-        const x = Math.floor((e.clientX - rect.left) * (imgEl.naturalWidth / rect.width));
-        const y = Math.floor((e.clientY - rect.top) * (imgEl.naturalHeight / rect.height));
-
-        if (x < 0 || y < 0 || x >= imgEl.naturalWidth || y >= imgEl.naturalHeight) return;
-        if (!imgEl.naturalWidth || !imgEl.naturalHeight) return;
-
-        const pixel = ctx.getImageData(x, y, 1, 1).data;
-        const alpha = pixel[3];
-
-        if (alpha > 20) onHit(e);
+      ["pointerdown", "pointerup"].forEach((evt) => {
+       imgEl.addEventListener(evt, (e) => {
+         const rect = imgEl.getBoundingClientRect();
+         const x = Math.floor((e.clientX - rect.left) * (imgEl.naturalWidth / rect.width));
+         const y = Math.floor((e.clientY - rect.top) * (imgEl.naturalHeight / rect.height));
+         if (x < 0 || y < 0 || x >= imgEl.naturalWidth || y >= imgEl.naturalHeight) return;
+         if (!imgEl.naturalWidth || !imgEl.naturalHeight) return;
+         let alpha = 255;
+         try{
+           const pixel = ctx.getImageData(x, y, 1, 1).data;
+           alpha = pixel[3];
+          }catch(err){
+           onHit(e);
+           return;
+          }
+           if (alpha > 5) onHit(e);
+        });
       });
     }
 
@@ -707,15 +1142,25 @@
       const department = localStorage.getItem(KEY_DEPT) || "";
       const question = regionToQuestion[region] || "이 공간에 대한 한 줄을 남겨주세요.";
 
+      saveCommentBtn.disabled = true;
+      saveCommentBtn.textContent = "저장 중...";
+
       try {
         await saveCommentToFirestore(region, question, text, name, department);
 
         commentModal.classList.remove("show");
         commentInput.value = "";
+
+        // ✅ 저장 성공 후 최근 목록 갱신
+        await loadRecentComments(region);
+
         alert("저장됐어요!");
       } catch (e) {
         console.error(e);
         alert("저장 중 오류가 발생했어요. (콘솔 확인)");
+      } finally {
+        saveCommentBtn.disabled = false;
+        saveCommentBtn.textContent = "저장";
       }
     });
 
@@ -731,7 +1176,10 @@
     updateBadges();
 
     (function initRoute() {
-      const hasUser = (localStorage.getItem(KEY_NAME) || "").trim() && (localStorage.getItem(KEY_DEPT) || "");
+      const hasUser =
+        (localStorage.getItem(KEY_NAME) || "").trim() &&
+        (localStorage.getItem(KEY_DEPT) || "");
+
       const target = screenFromHash();
 
       if (!hasUser && target !== 1) {
