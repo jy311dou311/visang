@@ -6,14 +6,6 @@
   <title>비버샘과 가치나누기</title>
 
   <style>
-    /* ===============================
-      Visang-ish Brand Tone (Clean + Trust + Modern)
-      - Soft gray background
-      - Blue primary accent
-      - Subtle borders, no "page card" outline
-      - Consistent radius, spacing, typography
-    =============================== */
-
     :root{
       --bg: #F6F8FB;
       --surface: #FFFFFF;
@@ -48,7 +40,7 @@
                   var(--bg);
     }
 
-    /* layout */
+    /* 래이아웃 */
     .screen { display: none; }
     .screen.active { display: block; }
 
@@ -57,7 +49,7 @@
       margin: 28px auto 48px;
     }
 
-    /* Top brand bar */
+    /* 위에 바 */
     .brandbar{
       display:flex;
       align-items:center;
@@ -94,7 +86,6 @@
       white-space: nowrap;
     }
 
-    /* sections (no outer page border) */
     .section{
       background: var(--surface);
       border: 1px solid var(--border);
@@ -135,7 +126,6 @@
       gap: 10px;
     }
 
-    /* Controls */
     .field{
       width: min(420px, 92vw);
       margin: 0 auto;
@@ -201,7 +191,6 @@
       background: rgba(239,68,68,0.08);
     }
 
-    /* Map stage */
     .mapWrap{ padding: 16px 18px 18px; }
     .map-stage{
       position: relative;
@@ -241,7 +230,7 @@
       filter: drop-shadow(0 0 10px rgba(37,99,235,0.30));
     }
 
-    /* Screen3 viewer */
+    /* 화면3 */
     .contentPad{ padding: 16px 18px 18px; }
 
     .metaLine{
@@ -327,7 +316,7 @@
       filter: drop-shadow(0 18px 26px rgba(17,24,39,0.26));
     }
 
-    /* ===== 최근 경험(댓글 영역) ===== */
+    /* 댓글 */
     .commentsBox{
       margin-top: 16px;
       padding: 14px 14px 12px;
@@ -460,7 +449,6 @@
       margin-top: 12px;
     }
 
-    /* Small helpers */
     .note{
       font-size: 12px;
       color: var(--muted);
@@ -479,7 +467,7 @@
 
 <body>
   <div class="container">
-    <!-- 브랜드바(전체 공통) -->
+    <!-- 브랜드바 -->
     <div class="brandbar">
       <div class="brand">
         <div class="brandMark" aria-hidden="true"></div>
@@ -604,7 +592,7 @@
             </div>
           </div>
 
-          <!-- ✅ 사진과 '지도 돌아가기' 사이: 최근 경험 5개 -->
+          <!-- 최근 경험 5개 -->
           <div class="commentsBox" aria-label="최근 경험">
             <div class="commentsHead">
               <div class="commentsTitle">최근에 남긴 한 줄</div>
@@ -751,7 +739,7 @@
           return;
         }
 
-        // 개인정보 부담 줄이기: 부서만 표기(이름 표시 원하면 commentSub에 추가하면 됨)
+        /* 나름의 익명성 */
         commentsList.innerHTML = items.map((it) => `
           <div class="commentItem">
             <div class="commentDot"></div>
@@ -829,7 +817,7 @@
       "에듀테크존": "edutech.png",
     };
 
-    // 우리의 믿음 7개
+    /* 우리의 믿음 7개 */
     const regionToSubTextScreen3 = {
       "휴담": "당연한 것도 낯설게 본다",
       "통실": "현장에서 시작해서 현장을 넘어선다",
@@ -866,7 +854,7 @@
       "스마트아카이브": 0, "교과서의 역사": 0, "에듀테크존": 0,
     };
 
-    // 캐릭터 위치
+    /* 캐릭터 위치 조정 */
     const regionToCharacterPos = {
       "휴담": { x: 50, y: 71 },
       "통실": { x: 50, y: 50 },
@@ -877,7 +865,7 @@
       "에듀테크존": { x: 34, y: 71 },
     };
 
-    // 미세 오프셋
+    /* 캐릭터 위치 조정-미세오프셋 */
     const regionToCharacterOffset = {
       "휴담": { dx: 14, dy: 5 },
       "통실": { dx: 0, dy: 0 },
@@ -888,7 +876,7 @@
       "에듀테크존": { dx: 9, dy: 6 },
     };
 
-    // 구역별 크기 배율
+    /* 구역별 캐릭터 크기-배율로.. */
     const regionToCharacterScale = {
       "휴담": 1.2,
       "통실": 1.0,
@@ -992,24 +980,24 @@
       const charSrc = regionToCharacterImage[regionName] || DEFAULT_CHARACTER_IMAGE;
       characterHotspot.src = charSrc;
 
-      // 캐릭터 위치
+      /* 캐릭터 위치 */
       const pos = regionToCharacterPos[regionName] || { x: 50, y: 50 };
       characterHotspot.style.left = `${pos.x}%`;
       characterHotspot.style.top = `${pos.y}%`;
 
-      // 미세 오프셋 적용
+      /* 미세오프셋 적용 */
       const off = regionToCharacterOffset[regionName] || { dx: 0, dy: 0 };
       characterHotspot.style.setProperty("--dx", `${off.dx}px`);
       characterHotspot.style.setProperty("--dy", `${off.dy}px`);
 
-      // 캐릭터 크기 배율 적용
+      /* 캐릭터 배율 적용 */
       const sc = regionToCharacterScale[regionName] || 1;
       characterHotspot.style.setProperty("--sc", sc);
 
       updateBadges();
       go(3);
 
-      // 최근 5개 댓글 로드
+      /* 최근 5개 로딩 */
       loadRecentComments(regionName);
     }
 
@@ -1151,7 +1139,7 @@
         commentModal.classList.remove("show");
         commentInput.value = "";
 
-        // ✅ 저장 성공 후 최근 목록 갱신
+        /* 저장 성공! */
         await loadRecentComments(region);
 
         alert("저장됐어요!");
