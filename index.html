@@ -272,16 +272,16 @@
       max-width: 720px;
     }
     .viewer img#regionImage{
-      width: 100%;
-      height: min(54vw, 420px);
-      object-fit: cover;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border);
-      background: #fff;
-      box-shadow: 0 18px 40px rgba(17,24,39,0.08);
-      transform-origin: center center;
-      transition: transform 140ms ease;
-      display:block;
+     width: 100%;
+     height: auto;
+     object-fit: contain;
+     border-radius: var(--radius-lg);
+     border: 1px solid var(--border);
+     background: #fff;
+     box-shadow: 0 18px 40px rgba(17,24,39,0.08);
+     transform-origin: center center;
+     transition: transform 140ms ease;
+     display:block;
     }
 
     /* 캐릭터 */
@@ -290,18 +290,17 @@
       left: 50%;
       top: 50%;
       transform: translate(
-        calc(-50% + var(--dx, 0px)),
-        calc(-50% + var(--dy, 0px))
+        calc(-50% + var(--dx, 0%)),
+        calc(-50% + var(--dy, 0%))
       ) scale(var(--sc, 1));
-      width: 78px;
-      height: 78px;
+      width: clamp(44px, 10vw, 78px);
+      height: auto;
       object-fit: contain;
       cursor: pointer;
       pointer-events: auto;
-     touch-action: manipulation;
+      touch-action: manipulation;
       user-select: none;
       -webkit-user-drag: none;
-
       background: none;
       border-radius: 0;
       box-shadow: none;
@@ -867,13 +866,13 @@
 
     /* 캐릭터 위치 조정-미세오프셋 */
     const regionToCharacterOffset = {
-      "휴담": { dx: 14, dy: 5 },
+      "휴담": { dx: 1.5, dy: 0.8 },
       "통실": { dx: 0, dy: 0 },
       "스마트 클래스": { dx: 0, dy: 0 },
-      "도서관": { dx: 7, dy: 8 },
-      "스마트아카이브": { dx: 3, dy: 7 },
-      "교과서의 역사": { dx: 3, dy: 5 },
-      "에듀테크존": { dx: 9, dy: 6 },
+      "도서관": { dx: 0.8, dy: 1.0 },
+      "스마트아카이브": { dx: 0.4, dy: 0.9 },
+      "교과서의 역사": { dx: 0.4, dy: 0.7 },
+      "에듀테크존": { dx: 1.0, dy: 0.9 },
     };
 
     /* 구역별 캐릭터 크기-배율로.. */
@@ -987,8 +986,8 @@
 
       /* 미세오프셋 적용 */
       const off = regionToCharacterOffset[regionName] || { dx: 0, dy: 0 };
-      characterHotspot.style.setProperty("--dx", `${off.dx}px`);
-      characterHotspot.style.setProperty("--dy", `${off.dy}px`);
+      characterHotspot.style.setProperty("--dx", `${off.dx}%`);
+      characterHotspot.style.setProperty("--dy", `${off.dy}%`);
 
       /* 캐릭터 배율 적용 */
       const sc = regionToCharacterScale[regionName] || 1;
